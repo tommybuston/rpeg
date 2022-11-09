@@ -195,7 +195,7 @@ pub fn pack_bits(image_a2_vid : &Array2 <Vid>, compressed_image_a2 : &mut Array2
 
 }
 
-pub fn b_c_d_quantize(num : f32) -> i64 {
+fn b_c_d_quantize(num : f32) -> i64 {
     if num >= 0.3 {
         return 15;
     }

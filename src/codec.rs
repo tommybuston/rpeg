@@ -4,7 +4,7 @@ use csc411_rpegio::{output_rpeg_data, read_in_rpeg_data};
 use array2::Array2;
 use crate::compress_tools::{RgbFloating, Vid, shave_image, to_float, 
                             to_component_video, pack_bits,isaac_chen_format};
-use crate::decompress_tools::{code_word_format};
+use crate::decompress_tools::{code_word_format, unpack_bits, to_rgb_float};
 //use bitpack::bitpack::{news, newu};
 
 /*
@@ -96,20 +96,26 @@ pub fn decompress(filename: Option<&str>) {
                                                     pb_avg : 0.0,
                                                     pr_avg : 0.0 }; 
 
-                                                    (image_a2.width / 2 )*(image_a2._height / 2)], 
-                                                    image_a2.width / 2, 
-                                                    image_a2._height / 2 );
+                                                    (image.1 *image.2) as usize], 
+                                                    image.1 as usize, 
+                                                    image.2 as usize );
 
     unpack_bits(&image_code_words, &mut image_a2_vid);
+
+    let mut image_a2_float : Array2<RgbFloating> = Array2::from_row_major( 
+                                                    vec![RgbFloating {
+                                                    red : 0.0,
+                                                    green : 0.0, 
+                                                    blue : 0.0 }; 
+                                                    (image.1*image.2*4) as usize], 
+                                                    (image.1*2) as usize, 
+                                                    (image.2*2) as usize );
+
+    to_rgb_float(&image_a2_vid, &mut image_a2_float.values);
+    
     /*
-    pack_bits(&image_a2_vid, &mut compressed_image_a2);
 
-    let mut compressed_image_a2 : Array2<u64> = Array2::from_row_major( vec![0 as u64; 
-                                                                        image_a2_vid.width *
-                                                                        image_a2_vid._height ],
-                                                                        image_a2_vid.width,
-                                                                        image_a2_vid._height);
-
+    
     to_component_video(&image_a2_float, &mut image_a2_vid.values);
 
     let mut image_a2_vid : Array2<Vid> = Array2::from_row_major( 
