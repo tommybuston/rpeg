@@ -13,12 +13,12 @@ pub fn code_word_format(be_bytes : &Vec<[u8; 4]> , image_code_words : &mut Vec<u
 pub fn unpack_bits(image_code_words : &Vec<u64> , image_a2_vid : &mut Array2<Vid>) {
     let mut i = 0;
     for word in image_code_words {
-        let a = getu(*word, 9, 23) as f32;
+        let a = getu(*word, 9, 23) as f32 / 511.0;
         let b = gets(*word, 5, 18) as f32 / 50.0;
         let c = gets(*word, 5, 13) as f32 / 50.0;
         let d = gets(*word, 5, 8) as f32 / 50.0;
-        let pr_avg = chroma_of_index(getu(*word, 4, 4) as usize );
-        let pb_avg = chroma_of_index(getu(*word, 4, 0) as usize );
+        let pb_avg = chroma_of_index(getu(*word, 4, 4) as usize );
+        let pr_avg = chroma_of_index(getu(*word, 4, 0) as usize );
 
         image_a2_vid.values[i].a = a;
         image_a2_vid.values[i].b = b;
@@ -50,7 +50,7 @@ pub fn to_rgb_float(image_a2_vid : &Array2<Vid>, image_a2_float : &mut Vec<RgbFl
             let b = vid_data.b;
             let c = vid_data.c;
             let d = vid_data.d;
-
+            //println!("({}, {}, {}, {}, {}, {})",a,b,c,d,pr,pb);
             let y = vec![a-b-c+d, a-b+c-d, a+b-c-d, a+b+c+d ];
 
             let mut i : usize = 0;
@@ -59,11 +59,22 @@ pub fn to_rgb_float(image_a2_vid : &Array2<Vid>, image_a2_float : &mut Vec<RgbFl
                         pix.red = 1.0 * y[i] + 0.0 * pb + 1.402 * pr;
                         pix.green = 1.0 * y[i] - 0.344136 * pb - 0.714136 * pr;
                         pix.blue = 1.0 * y[i] + 1.772 * pb + 0.0 * pr;
+                        //println!("({}, {}, {})",pix.red,pix.green,pix.blue);
                         i += 1;
                 }
             }
 
         }
+    }
+}
+
+pub fn to_int( image_a2_float : &Array2<RgbFloating>, image_a2 : &mut Array2 <Rgb> ) {
+    for pix in image_a2_float.iter_row_major() {
+        //println!("({:3}, {:3}, {:3})",pix.2.red,pix.2.green,pix.2.blue);
+        let current = image_a2.get_mut_value(pix.0, pix.1);
+        current.red = ((pix.2.red) * 255.0).round() as u16;
+        current.green = ((pix.2.green) * 255.0).round() as u16;
+        current.blue = ((pix.2.blue) * 255.0).round() as u16;
     }
 }
 

@@ -27,18 +27,21 @@ pub fn shave_image( image_a2 : &mut Array2<Rgb> ) {
 
     if w % 2 != 0 && h % 2 != 0 {
         
-        let mut shaved_pixels : Vec<Rgb> = vec![Rgb {red : 0,
-                                                    green : 0, 
-                                                    blue : 0 }
-                                                    ; (w - 1)*h];
+        let mut shaved_pixels : Vec<Rgb> = Vec::new();
+
         let mut i : usize = 0;
 
         for pix in image_a2.iter_row_major() {
-            if i % (w - 1) == 0 {continue;}
+            if (i + 1) % w == 0 {
+                i += 1;
+                continue;
+            }
 
-            shaved_pixels[i].red = pix.2.red;
-            shaved_pixels[i].green = pix.2.green;
-            shaved_pixels[i].blue = pix.2.blue;
+            let red = pix.2.red;
+            let green = pix.2.green;
+            let blue = pix.2.blue;
+
+            shaved_pixels.push( Rgb {red: red, green: green, blue: blue} );
 
             i += 1;
         }
@@ -48,7 +51,7 @@ pub fn shave_image( image_a2 : &mut Array2<Rgb> ) {
         image_a2.values = shaved_pixels;
         image_a2.width = w - 1;
         image_a2._height = h - 1;
-
+        //println!("{}", image_a2.values.len());
 
     }
     else if w % 2 != 0 {
@@ -60,12 +63,16 @@ pub fn shave_image( image_a2 : &mut Array2<Rgb> ) {
         let mut i : usize = 0;
 
         for pix in image_a2.iter_row_major() {
-            if i % (w - 1) == 0 {continue;}
+            if (i + 1) % w == 0 {
+                i += 1;
+                continue;
+            }
 
-            shaved_pixels[i].red = pix.2.red;
-            shaved_pixels[i].green = pix.2.green;
-            shaved_pixels[i].blue = pix.2.blue;
+            let red = pix.2.red;
+            let green = pix.2.green;
+            let blue = pix.2.blue;
 
+            shaved_pixels.push( Rgb {red: red, green: green, blue: blue} );
 
             i += 1;
         }
@@ -95,6 +102,8 @@ pub fn to_float ( image_a2 : &Array2<Rgb>,
         current.red = (pix.2.red as f32) / denom;
         current.green = (pix.2.green as f32) / denom;
         current.blue = (pix.2.blue as f32) / denom;
+
+        //println!("({}, {}, {})", current.red, current.green, current.blue);
     }
 
 }
@@ -151,6 +160,8 @@ pub fn to_component_video(image_a2_float : &Array2<RgbFloating>,
             let pb_avg_current : f32 = pb_vals / 4.0;
             let pr_avg_current : f32 = pr_vals / 4.0;
 
+            //println!("({}, {}, {}, {}, {}, {})",a_current,b_current,c_current,d_current,pr_avg_current,pb_avg_current);
+
             current_square.a = a_current;
             current_square.b = b_current;
             current_square.c = c_current;
@@ -179,6 +190,8 @@ pub fn pack_bits(image_a2_vid : &Array2 <Vid>, compressed_image_a2 : &mut Array2
         let b_quant : i64 = b_c_d_quantize(square.2.b);
         let c_quant : i64 = b_c_d_quantize(square.2.c);
         let d_quant : i64 = b_c_d_quantize(square.2.d);
+
+        //println!("({}, {}, {}, {}, {}, {})", a_quant, b_quant, c_quant, d_quant, pr_quant, pb_quant);
 
         bits = newu(bits, 4, 0, pr_quant).unwrap();
         bits = newu(bits, 4, 4, pb_quant).unwrap();
